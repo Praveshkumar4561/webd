@@ -1,0 +1,19 @@
+* {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: rgb(139, 182, 148);
+  letter-spacing: 1px;
+  word-spacing: 2px;
+}
+
+.input-text {
+  padding: 10px 10px;
+}
+
+.select-items {
+  padding: 10px 10px;
+}
