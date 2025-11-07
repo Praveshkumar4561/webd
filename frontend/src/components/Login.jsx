@@ -2,68 +2,75 @@ import React, { useState } from "react";
 import "../App.css";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 
 function Login() {
   const API_URL = import.meta.env.VITE_API_URL;
   const navigate = useNavigate();
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+
+  const [adminUsername, setAdminUsername] = useState("");
+  const [adminPassword, setAdminPassword] = useState("");
+  const [adminError, setAdminError] = useState("");
+  const [adminLoading, setAdminLoading] = useState(false);
+  const [showAdminPassword, setShowAdminPassword] = useState(false);
+
+  const [formData, setFormData] = useState({
+    identifier: "",
+    password: "",
+  });
+  const [errors, setErrors] = useState("");
+  const [showUserPassword, setShowUserPassword] = useState(false);
 
   const handleAdminLogin = async (e) => {
     e.preventDefault();
-    setError("");
-    setLoading(true);
+    setAdminError("");
+    setAdminLoading(true);
 
     try {
       const response = await axios.post(`${API_URL}/adminlogin`, {
-        username,
-        password,
+        username: adminUsername,
+        password: adminPassword,
       });
 
       if (response.status === 200) {
-        setTimeout(() => {
-          navigate("/admin/home");
-        }, 1500);
+        const admin = response.data?.admin ?? null;
+        const token = response.data?.token ?? null;
+
+        localStorage.setItem("isAuthenticated", "true");
+
+        if (token) localStorage.setItem("adminToken", token);
+
+        if (admin) localStorage.setItem("adminUser", JSON.stringify(admin));
+
+        navigate("/admin/home");
+        return;
       }
     } catch (err) {
-      console.error(err);
-
       const msg =
         err.response?.data?.message || "Server error. Please try again";
-      setError(msg);
+      setAdminError(msg);
     } finally {
-      setLoading(false);
+      setAdminLoading(false);
     }
   };
 
-  const [formData, setFormData] = useState({
-    username: "",
-    password: "",
-  });
-
-  const [errors, setErrors] = useState("");
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleSubmit = async (e) => {
+  const handleUserLogin = async (e) => {
     e.preventDefault();
     setErrors("");
 
     try {
       const response = await axios.post(`${API_URL}/userlogin`, formData);
+
       if (response.status === 200) {
+        const { user, token } = response.data;
+
+        localStorage.setItem("userId", user.id);
+        localStorage.setItem("token", token);
+
         navigate("/user");
       }
     } catch (err) {
-      console.error(err);
       if (err.response && err.response.data) {
         setErrors(err.response.data.message || "Login failed");
       } else {
@@ -88,32 +95,40 @@ function Login() {
                     <label className="form-label">Username</label>
                     <input
                       type="text"
-                      className="form-control"
-                      value={username}
-                      onChange={(e) => setUsername(e.target.value)}
+                      placeholder="Username or email"
+                      className="form-control input-text"
+                      value={adminUsername}
+                      onChange={(e) => setAdminUsername(e.target.value)}
                       required
                     />
                   </div>
-                  <div className="mb-3">
+
+                  <div className="mb-3 position-relative">
                     <label className="form-label">Password</label>
                     <input
-                      type="password"
-                      className="form-control"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
+                      type={showAdminPassword ? "text" : "password"}
+                      placeholder="Password"
+                      className="form-control input-text"
+                      value={adminPassword}
+                      onChange={(e) => setAdminPassword(e.target.value)}
                       required
+                    />
+                    <FontAwesomeIcon
+                      icon={showAdminPassword ? faEyeSlash : faEye}
+                      className="password-toggle-icon"
+                      onClick={() => setShowAdminPassword((v) => !v)}
                     />
                   </div>
                 </div>
 
-                {error && <p className="text-danger">{error}</p>}
+                {adminError && <p className="text-danger">{adminError}</p>}
 
                 <button
                   type="submit"
                   className="btn btn-primary w-100 mt-0 mb-3"
-                  disabled={loading}
+                  disabled={adminLoading}
                 >
-                  {loading ? "Logging in..." : "Admin Login"}
+                  {adminLoading ? "Logging in..." : "Admin Login"}
                 </button>
               </form>
             </div>
@@ -126,33 +141,52 @@ function Login() {
               <h3 className="card-title mb-4 text-center">User Login</h3>
               <form
                 className="flex-grow-1 d-flex flex-column justify-content-between"
-                onSubmit={handleSubmit}
+                onSubmit={handleUserLogin}
               >
                 <div>
                   <div className="mb-3">
-                    <label className="form-label">Username</label>
+                    <label className="form-label">Username or Email</label>
                     <input
                       type="text"
-                      name="username"
+                      name="identifier"
+                      placeholder="Username or email"
                       className="form-control input-text"
-                      value={formData.username}
-                      onChange={handleChange}
+                      value={formData.identifier}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          identifier: e.target.value,
+                        }))
+                      }
                       required
                     />
                   </div>
-                  <div className="mb-3">
+                  <div className="mb-3 position-relative">
                     <label className="form-label">Password</label>
                     <input
-                      type="password"
+                      type={showUserPassword ? "text" : "password"}
                       name="password"
+                      placeholder="Password"
                       className="form-control input-text"
                       value={formData.password}
-                      onChange={handleChange}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          password: e.target.value,
+                        }))
+                      }
                       required
+                    />
+                    <FontAwesomeIcon
+                      icon={showUserPassword ? faEyeSlash : faEye}
+                      className="password-toggle-icon"
+                      onClick={() => setShowUserPassword((v) => !v)}
                     />
                   </div>
                 </div>
+
                 {errors && <p className="text-danger">{errors}</p>}
+
                 <button className="btn btn-success w-100 mt-2 mb-3">
                   User Login
                 </button>

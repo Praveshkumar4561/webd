@@ -1,0 +1,40 @@
+export const CURRENCY_OPTIONS = [
+  {
+    id: "د.إ",
+    code: "AED",
+    label: "UAE — د.إ (AED)",
+    symbol: "د.إ",
+    locale: "ar-AE",
+  },
+  { id: "$", code: "USD", label: "USA — $", symbol: "$", locale: "en-US" },
+  { id: "₹", code: "INR", label: "India — ₹", symbol: "₹", locale: "en-IN" },
+  {
+    id: "Rs",
+    code: "PKR",
+    label: "Pakistan Rs",
+    symbol: "Rs",
+    locale: "en-PK",
+  },
+  {
+    id: "රු",
+    code: "LKR",
+    label: "Sri Lanka — රු",
+    symbol: "රු",
+    locale: "si-LK",
+  },
+  {
+    id: "Nu",
+    code: "BTN",
+    label: "Bhutan — Nu",
+    symbol: "Nu",
+    locale: "dz-BT",
+  },
+  {
+    id: "৳",
+    code: "BDT",
+    label: "Bangladesh — ৳",
+    symbol: "৳",
+    locale: "bn-BD",
+  },
+  { id: "₨", code: "NPR", label: "Nepal — ₨", symbol: "₨", locale: "ne-NP" },
+];
